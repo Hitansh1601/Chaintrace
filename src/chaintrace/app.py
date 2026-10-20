@@ -86,14 +86,19 @@ def sidebar_data(store: CaseStore, case_id: int) -> None:
             _show_import(store, case_id, result, f"csv_{upload.name}")
     with st.sidebar.expander("Optional: public provider (read-only)"):
         st.caption("Off by default. Makes HTTPS GET requests only; no API key, no signing. "
-                   "Experimental: first page, native-coin transfers only.")
+                   "Any EVM chain with a Blockscout v2 explorer (Ethereum, Sepolia, Polygon, "
+                   "BNB Chain, Arbitrum, Base). Native-coin transfers only.")
         if st.checkbox("Enable network access", key="prov_on"):
             base = st.text_input("Explorer base URL (Blockscout-style)", placeholder="https://…")
             addr = st.text_input("Address to fetch")
+            chain = st.selectbox("Chain (label recorded in data_source)",
+                                 ["ethereum", "sepolia", "polygon", "bsc", "arbitrum", "base"])
             limit = st.number_input("Max transfers", 1, 1000, 50)
+            pages = st.number_input("Pages to follow (Blockscout next_page_params)", 1, 10, 1)
             if st.button("Fetch"):
                 try:
-                    st.session_state["prov_result"] = BlockscoutStyleAdapter(base, addr, int(limit)).load()
+                    st.session_state["prov_result"] = BlockscoutStyleAdapter(
+                        base, addr, int(limit), chain=chain, max_pages=int(pages)).load()
                 except (ValueError, ProviderError, SchemaError) as exc:
                     st.session_state.pop("prov_result", None)
                     st.error(str(exc))

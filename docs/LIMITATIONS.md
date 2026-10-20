@@ -18,7 +18,7 @@
 * Repeated interaction is evaluated only for watchlist addresses.
 
 **Provider adapter**
-* Experimental. Mapping follows the documented Blockscout v2 shape and is tested only against mocked payloads; it has not been verified against a live endpoint. First page and native-coin transfers only; no pagination, token transfers, or retry/backoff. Public endpoints rate-limit.
+* Experimental. Mapping follows the documented Blockscout v2 shape and is tested only against mocked payloads; it has not been verified against a live endpoint. Native-coin transfers only; `max_pages` (1–10, default 1) follows `next_page_params`. No token transfers (as decoded events), internal traces, retry/backoff. Public endpoints rate-limit.
 
 **Tool**
 * Single-user SQLite, no authentication or audit log of UI actions beyond timestamps on notes/imports. Not a substitute for forensic acquisition tooling or chain-of-custody procedures.

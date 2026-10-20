@@ -10,6 +10,25 @@ points to the transactions behind it.
 > identity, criminality, or common ownership, and the tool never attributes an address to a
 > named person. The bundled dataset is **entirely synthetic**.
 
+## Which blockchain does it use, and how?
+
+ChainTrace is **chain-agnostic but EVM-only**: it analyses account-model transfers
+(`one sender → one recipient`, `0x` + 40-hex addresses, `0x` + 64-hex tx hashes).
+That is the format used by Ethereum and every EVM-compatible network, so the same
+CSV shape works for all of them. There is **no RPC node, no signing, no private keys —
+read-only by construction**.
+
+| Source | Chain | How |
+|---|---|---|
+| Bundled synthetic demo (`SYNTHETIC_DEMO_v1`, 201 transfers) | Simulates **Ethereum mainnet** semantics (chain id `1`, ~12 s blocks from ~19M, `ETH` 18 decimals / `USDC` 6 decimals) | Invented addresses/transfers; `data_source` is `SYNTHETIC_DEMO_v1` on every row. See `src/chaintrace/chain.py` (`SYNTHETIC_CHAIN`) and `synthetic.py` (`CHAIN_ID`, `BLOCK_TIME_SECS`). |
+| Your own CSV | Any EVM chain you export (Ethereum, Polygon, BNB Chain, L2s, …) | Export explorer/RPC results into the [Input CSV format](#input-csv-format); the `asset`/`data_source` columns record which chain the rows came from. |
+| Optional live pull (`BlockscoutStyleAdapter`) | Any chain with a **Blockscout v2** explorer: `ethereum` (1), `sepolia` (11155111), `polygon` (137), `bsc` (56), `arbitrum` (42161), `base` (8453), or a private instance | HTTPS `GET` only to `/api/v2/addresses/{hash}/transactions`, no API key. Native-coin transfers, amount converted from base units with per-asset decimals (`ETH` 18, `USDC`/`USDT` 6). Optional `max_pages` follows `next_page_params`. Presets live in `src/chaintrace/chain.py` (`SUPPORTED_CHAINS`). |
+
+What it does **not** do: UTXO chains (Bitcoin), internal traces, event-decoded ERC-20
+flows (unless you flatten them to one row per transfer), NFTs, contract semantics,
+EIP-55 checksum validation (format-only check), or attribution of addresses to people.
+See [Limitations](docs/LIMITATIONS.md).
+
 ## Features
 
 | Area | What you get |
@@ -81,25 +100,31 @@ explanation of why it fired, caveats naming benign explanations, parameters, met
 
 ```text
 src/chaintrace/
-  schema.py  importer.py  adapters/      # canonical schema, validation, CSV + optional provider
+  schema.py  importer.py  adapters/ chain.py  # canonical schema, validation, CSV + optional provider, chain registry
   graph.py   timeline.py  viz.py         # filters, NetworkX graph, chronological view, Plotly
   heuristics.py  findings.py             # detectors, Indicator/Fact models
   cases.py   report.py   service.py      # SQLite store, report builder/verifier, orchestration
   synthetic.py  sample_data/             # deterministic synthetic dataset + manifest of planted patterns
   app.py (Streamlit)  cli.py
-tests/        # 127 tests
-docs/         # ARCHITECTURE, SAMPLE_INVESTIGATION, LIMITATIONS, DEMO_WALKTHROUGH
+tests/        # 128 tests
+docs/         # ARCHITECTURE, SAMPLE_INVESTIGATION, LIMITATIONS, DEMO_WALKTHROUGH, BLOCKCHAIN
 ```
 
 ## Optional public-data adapter
 
-`BlockscoutStyleAdapter` fetches an address's first page of native-coin transactions from a
-Blockscout-style explorer (`/api/v2/addresses/{hash}/transactions`) using HTTPS GET only, no key. In the UI it sits
-behind an opt-in checkbox. It is covered by tests against mocked responses and was **not verified against a live
-endpoint** when written: check its output against the explorer before relying on it. Token transfers and pagination
-are not implemented.
+`BlockscoutStyleAdapter(base_url, address, limit, chain="ethereum", max_pages=1)`
+fetches native-coin transactions from any Blockscout-style explorer
+(`/api/v2/addresses/{hash}/transactions`) using HTTPS GET only, no key.
+In the UI it sits behind an opt-in checkbox with a chain picker. Amounts are
+converted from base units with per-asset decimals (`ETH`-like 18, `USDC`/`USDT` 6,
+override with `decimals=`). `max_pages` (1–10) follows `next_page_params`;
+the default `1` keeps the historic first-page-only behaviour.
+It is covered by tests against mocked responses and was **not verified against a live
+endpoint** when written: check its output against the explorer before relying on it.
+Token transfers, internal transactions and contract-event decoding are not implemented.
 
 ## Documentation
 
-* [Architecture](docs/ARCHITECTURE.md) · [Sample investigation](docs/SAMPLE_INVESTIGATION.md) ·
+* [Architecture](docs/ARCHITECTURE.md) · [Which blockchain?](docs/BLOCKCHAIN.md) ·
+  [Sample investigation](docs/SAMPLE_INVESTIGATION.md) ·
   [Demo walkthrough](docs/DEMO_WALKTHROUGH.md) · [Limitations](docs/LIMITATIONS.md)

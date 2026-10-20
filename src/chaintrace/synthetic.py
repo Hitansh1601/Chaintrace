@@ -4,6 +4,12 @@ Everything here is invented. Addresses are derived from SHA-256 of role labels s
 ``SYN-FANOUT-SRC``; they are not real wallets and the role labels make no claim about any
 real person or entity. The planted patterns are listed in a manifest so tests can confirm
 that the heuristics find them (and so the one deliberately benign look-alike is explicit).
+
+Blockchain context: the rows simulate **Ethereum-mainnet semantics** (EVM account model,
+chain id 1, ~12s blocks from ~19M, ``ETH`` with 18 decimals and ``USDC`` with 6).
+They resolve to no real chain; ``data_source`` is ``SYNTHETIC_DEMO_v1`` on every row.
+Any EVM-compatible Blockscout explorer (Ethereum, Sepolia, Polygon, BNB Chain, ...)
+uses the same address/transaction format, so the same CSV shape works for real data.
 """
 from __future__ import annotations
 
@@ -23,6 +29,13 @@ MANIFEST_JSON = SAMPLE_DIR / "synthetic_manifest.json"
 
 T0 = datetime(2026, 1, 5, 0, 0, 0, tzinfo=timezone.utc)
 BASE_BLOCK = 19_000_000
+BLOCK_TIME_SECS = 12  # Ethereum-mainnet-like spacing used for synthetic block numbers
+CHAIN_NAME = "ethereum"  # what the synthetic data pretends to be
+CHAIN_ID = 1  # EIP-155 chain id of the simulated network
+CHAIN_NOTE = (
+    "Synthetic data simulates Ethereum-mainnet semantics (chain id 1, ~12s blocks). "
+    "No row corresponds to a real on-chain transfer."
+)
 SOURCE = "SYNTHETIC_DEMO_v1"
 SEED = 1337
 CSV_FIELDS = [
@@ -47,7 +60,7 @@ class _Builder:
             {
                 "tx_hash": "0x" + hashlib.sha256(f"chaintrace-synthetic-tx:{self.counter}".encode()).hexdigest(),
                 "transfer_index": 0,
-                "block_number": BASE_BLOCK + int((when - T0).total_seconds() // 12),
+                "block_number": BASE_BLOCK + int((when - T0).total_seconds() // BLOCK_TIME_SECS),
                 "timestamp": when.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "from_address": address(src),
                 "to_address": address(dst),
