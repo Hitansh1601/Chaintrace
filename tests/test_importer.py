@@ -99,7 +99,7 @@ def test_binary_garbage_does_not_crash_unexpectedly():
 def test_sha256_stable_and_input_types_equivalent(tmp_path):
     text = HEADER + row()
     p = tmp_path / "t.csv"
-    p.write_text(text)
+    p.write_text(text, newline="\n")  # exact bytes: no CRLF translation on Windows
     a, b, c = load_transactions(p), load_transactions(text.encode()), load_transactions(io.BytesIO(text.encode()))
     assert a.sha256 == b.sha256 == c.sha256 and a.source_name == "t.csv"
 
