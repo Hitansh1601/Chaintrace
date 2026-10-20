@@ -1,0 +1,58 @@
+{
+  "dataset": "SYNTHETIC_DEMO_v1",
+  "seed": 1337,
+  "planted_patterns": [
+    {
+      "scenario": "fan-out burst",
+      "heuristic": "transaction_burst",
+      "expected_addresses": [
+        "0xd2b8737eca63fd00cc402f5b57c33004541d85d6"
+      ],
+      "benign_lookalike": false,
+      "note": "Synthetic: one address sends 14 similar transfers to 14 fresh addresses within ~6 minutes."
+    },
+    {
+      "scenario": "unusual value change",
+      "heuristic": "unusual_value_change",
+      "expected_addresses": [
+        "0xb1a44f403052b3840d117ec8d596b8f9187db051"
+      ],
+      "benign_lookalike": false,
+      "note": "Synthetic: 38 ETH after eight transfers of 0.4-0.9 ETH."
+    },
+    {
+      "scenario": "rapid multi-hop chain",
+      "heuristic": "rapid_multihop",
+      "expected_addresses": [
+        "0xe63eb717e8ea1772267aae95a029a6e5d43ff6c2",
+        "0xcf487b8bfc553b9a112d3da2bc7169923c8601ef",
+        "0xb365f92954b2a3d858724738ed3fe517b6bc200d",
+        "0xc51a54b2dced440b51941c544a6124aa39ed73ba",
+        "0xb7d878540dc196ed4d7a8a1ea8fb690728a62ad8",
+        "0x22f187b02e92631599c722991f27f87b81cd5713",
+        "0xf319dfea1c79d8d264a368d88681d24a0d37857a"
+      ],
+      "benign_lookalike": false,
+      "note": "Synthetic: six forwards in ~18 minutes, each retaining ~98% of the value."
+    },
+    {
+      "scenario": "repeated interactions",
+      "heuristic": "repeated_interaction",
+      "expected_addresses": [
+        "0x9fc9d3f6d2581831984f181f15df5f6c3ed26b31",
+        "0x351fa78373141193c0afc4a5c78bde2a9d9b1471"
+      ],
+      "benign_lookalike": false,
+      "note": "Synthetic: nine two-way transfers over nine days. Only reported when W is on the watchlist."
+    },
+    {
+      "scenario": "batch payout (benign look-alike)",
+      "heuristic": "transaction_burst",
+      "expected_addresses": [
+        "0x50320888b782700be3fcc48db182c818c506821c"
+      ],
+      "benign_lookalike": true,
+      "note": "Synthetic: ten salary-like USDC transfers in ~5 minutes. Trips the burst rule by design, illustrating false positives; the right reading is 'needs context', not 'suspicious'."
+    }
+  ]
+}
